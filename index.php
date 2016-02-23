@@ -227,7 +227,7 @@ if ($action == 'login') {
 				} else {
 					if (isset($_POST['script']) && $_POST['script'] != "") {
 						if (preg_match("/\$customer_/", $_POST['script']) === 1) {
-							redirectTo('admin_customers.php', $qryparams);
+							redirectTo('admin_index.php');
 						} else {
 							redirectTo($_POST['script'], $qryparams);
 						}
