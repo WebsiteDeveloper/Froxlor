@@ -1954,14 +1954,14 @@ $lng['domains']['ssl_redirect_temporarilydisabled'] = "<br>The SSL redirect is t
 $lng['admin']['autoupdate'] = 'Auto-Update';
 $lng['error']['customized_version'] = 'It looks like your Froxlor installation has been customized, no support sorry.';
 $lng['error']['autoupdate_0'] = 'Unknown error';
-$lng['error']['autoupdate_1'] = 'PHP setting allow_url_fopen is disabled. Autoupdate needs this setting to be enabled in the php.ini';
+$lng['error']['autoupdate_1'] = 'PHP setting allow_url_fopen is disabled. Autoupdate needs this setting to be enabled in php.ini';
 $lng['error']['autoupdate_2'] = 'PHP extension Zlib not found, please ensure it is installed and activated';
 $lng['error']['autoupdate_4'] = 'The froxlor archive could not be stored to the disk :(';
 $lng['error']['autoupdate_5'] = 'version.froxlor.org returned inacceptable values :(';
 $lng['error']['autoupdate_6'] = 'Woops, there was no (valid) version given to download :(';
 $lng['error']['autoupdate_7'] = 'The downloaded archive could not be found :(';
-$lng['error']['autoupdate_8'] = 'The archive could not be extraxted :(';
-$lng['error']['autoupdate_9'] = 'The MD5 sum of the downloaded file is not correct. Please try to update again.';
+$lng['error']['autoupdate_8'] = 'The archive could not be extracted :(';
+$lng['error']['autoupdate_9'] = 'The downloaded file did not pass the integrity check. Please try to update again.';
 
 $lng['admin']['server_php'] = 'PHP';
 
@@ -1970,3 +1970,22 @@ $lng['domains']['termination_date'] = 'Date of termination';
 $lng['domains']['termination_date_overview'] = 'canceled until ';
 
 $lng['panel']['set'] = 'Apply';
+
+// Added for Vhost templates
+$lng['menue']['vhostsettings']['maintitle'] = 'VHost Configurations';
+$lng['admin']['vhostsettings']['title'] = 'VHost Configuration';
+$lng['admin']['vhostsettings']['addnew'] = 'Add new configuration';
+$lng['admin']['vhostsettings']['addsettings'] = 'Create a VHost configuration';
+$lng['admin']['vhostsettings']['editsettings'] = 'Edit a VHost configuration';
+$lng['admin']['vhostsettings']['vhostsettings'] = 'Predefined VHost configuration';
+$lng['admin']['vhostsettings']['novhostsettings'] = 'No predefined VHost configuration';
+$lng['admin']['vhostconfig']['socket_dir'] = 'Will be replaced with the corresponding Unix socket path, e.g. /var/run/domain-php-fpm.socket.';
+$lng['admin']['vhostconfig']['docroot'] = 'Will be replaced with the DocumentRoot.';
+$lng['admin']['vhostconfig']['ip'] = 'Will be replaced with the IP address of the Vhost.';
+$lng['admin']['vhostconfig']['port'] = 'Will be replaced with the port number of the Vhost.';
+$lng['admin']['vhostconfig']['scheme'] = 'Will be set to <strong>http</strong> or <strong>https</strong> in case SSL / TLS is activated for the Vhost.';
+$lng['admin']['vhostconfig']['vhost_usedefaultlocation']['title'] = 'Use the standard Vhost location directives';
+$lng['admin']['vhostconfig']['vhost_usedefaultlocation']['desc'] = 'If deactivated, the standard Vhost location directives, such as <br>location / { ... }<br> location @rewrites { ... }<br> location ~ ^(.+?\.php)(/.*)?$ { ... }<br> are excluded from the Vhost configuration file.';
+$lng['question']['vhostsetting_reallydelete'] = 'Do you really want to delete the Vhost template?';
+
+$lng['admin']['server_templates'] = 'Templates';

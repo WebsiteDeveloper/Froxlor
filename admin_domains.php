@@ -97,7 +97,7 @@ if ($page == 'domains'
 			}
 			$row['ipandport'] = substr($row['ipandport'], 0, -1);
                         $row['termination_date'] = str_replace("0000-00-00", "", $row['termination_date']);
-                        
+
                         if($row['termination_date'] != "")
                         {
                             $cdate = strtotime($row['termination_date'] . " 23:59:59");
@@ -432,6 +432,8 @@ if ($page == 'domains'
 					$specialsettings = '';
 				}
 
+				$vhostsettingid = 0;
+				$vhost_usedefaultlocation = 1;
 				if ($userinfo['caneditphpsettings'] == '1'
 					|| $userinfo['change_serversettings'] == '1'
 				) {
@@ -442,6 +444,8 @@ if ($page == 'domains'
 						|| (int)Settings::Get('phpfpm.enabled') == 1
 					) {
 						$phpsettingid = (int)$_POST['phpsettingid'];
+						$vhostsettingid = (int)$_POST['vhostsettingid'];
+						$vhost_usedefaultlocation = isset($_POST['vhost_usedefaultlocation']) ? (int)$_POST['vhost_usedefaultlocation'] : 1;
 						$phpsettingid_check_stmt = Database::prepare("
 							SELECT * FROM `" . TABLE_PANEL_PHPCONFIGS . "`
 							WHERE `id` = :phpsettingid"
@@ -733,6 +737,8 @@ if ($page == 'domains'
 						'ssl_ipandport' => serialize($ssl_ipandports),
 						'openbasedir' => $openbasedir,
 						'phpsettingid' => $phpsettingid,
+						'vhostsettingid' => $vhostsettingid,
+						'vhost_usedefaultlocation' => $vhost_usedefaultlocation,
 						'mod_fcgid_starter' => $mod_fcgid_starter,
 						'mod_fcgid_maxrequests' => $mod_fcgid_maxrequests,
 						'specialsettings' => $specialsettings,
@@ -786,6 +792,8 @@ if ($page == 'domains'
 						'registration_date' => $registration_date,
                                                 'termination_date' => $termination_date,
 						'phpsettingid' => $phpsettingid,
+						'vhostsettingid' => $vhostsettingid,
+						'vhost_usedefaultlocation' => $vhost_usedefaultlocation,
 						'mod_fcgid_starter' => $mod_fcgid_starter,
 						'mod_fcgid_maxrequests' => $mod_fcgid_maxrequests,
 						'ismainbutsubto' => $issubof,
@@ -819,6 +827,8 @@ if ($page == 'domains'
 						`registration_date` = :registration_date,
                                                 `termination_date` = :termination_date,
 						`phpsettingid` = :phpsettingid,
+						`vhostsettingid` = :vhostsettingid,
+						`vhost_usedefaultlocation` = :vhost_usedefaultlocation,
 						`mod_fcgid_starter` = :mod_fcgid_starter,
 						`mod_fcgid_maxrequests` = :mod_fcgid_maxrequests,
 						`ismainbutsubto` = :ismainbutsubto,
@@ -998,6 +1008,16 @@ if ($page == 'domains'
 					} else {
 						$phpconfigs.= makeoption($row['description'], $row['id'], Settings::Get('system.mod_fcgid_defaultini'), true, true);
 					}
+				}
+
+				// vhost configs
+				$vhostconfigs = '';
+				$configsvhost = Database::prepare("SELECT * FROM `" . TABLE_PANEL_VHOSTCONFIGS . "` WHERE `webserver` = :webserver ORDER BY description ASC");
+				Database::pexecute($configsvhost, array('webserver' => Settings::Get('system.webserver')));
+
+				$vhostconfigs.= makeoption($lng['admin']['vhostsettings']['novhostsettings'], 0);
+				while ($row = $configsvhost->fetch(PDO::FETCH_ASSOC)) {
+					$vhostconfigs.= makeoption($row['description'], $row['id'], '', true, true);
 				}
 
 				// create serveralias options
@@ -1226,6 +1246,7 @@ if ($page == 'domains'
 					}
 
 					$specialsettings = validate(str_replace("\r\n", "\n", $_POST['specialsettings']), 'specialsettings', '/^[^\0]*$/');
+					$ssfs = (isset($_POST['specialsettingsforsubdomains']) && intval($_POST['specialsettingsforsubdomains']) == 1) ? 1 : 0;
 					$documentroot = validate($_POST['documentroot'], 'documentroot');
 
 					if ($documentroot == '') {
@@ -1249,10 +1270,13 @@ if ($page == 'domains'
 					$zonefile = $result['zonefile'];
 					$dkim = $result['dkim'];
 					$specialsettings = $result['specialsettings'];
+					$ssfs = (empty($specialsettings) ? 0 : 1);
 					$documentroot = $result['documentroot'];
 				}
 
 				$speciallogverified = (isset($_POST['speciallogverified']) ? (int)$_POST['speciallogverified'] : 0);
+				$vhostsettingid = $result['vhostsettingid'];
+				$vhost_usedefaultlocation = $result['vhost_usedefaultlocation'];
 
 				if ($userinfo['caneditphpsettings'] == '1'
 					|| $userinfo['change_serversettings'] == '1'
@@ -1264,6 +1288,8 @@ if ($page == 'domains'
 						|| (int)Settings::Get('phpfpm.enabled') == 1
 					) {
 						$phpsettingid = (int)$_POST['phpsettingid'];
+						$vhostsettingid = (int)$_POST['vhostsettingid'];
+						$vhost_usedefaultlocation = isset($_POST['vhost_usedefaultlocation']) ? (int)$_POST['vhost_usedefaultlocation'] : $vhost_usedefaultlocation;
 						$phpsettingid_check_stmt = Database::prepare("
 							SELECT * FROM `" . TABLE_PANEL_PHPCONFIGS . "` WHERE `id` = :phpid
 						");
@@ -1494,9 +1520,12 @@ if ($page == 'domains'
 					'ssl_redirect' => $ssl_redirect,
 					'openbasedir' => $openbasedir,
 					'phpsettingid' => $phpsettingid,
+					'vhost_usedefaultlocation' => $vhost_usedefaultlocation,
+					'vhostsettingid' => $vhostsettingid,
 					'mod_fcgid_starter' => $mod_fcgid_starter,
 					'mod_fcgid_maxrequests' => $mod_fcgid_maxrequests,
 					'specialsettings' => $specialsettings,
+					'specialsettingsforsubdomains' => $ssfs,
 					'registration_date' => $registration_date,
 					'termination_date' => $termination_date,
 					'issubof' => $issubof,
@@ -1531,6 +1560,8 @@ if ($page == 'domains'
 					|| $iswildcarddomain != $result['iswildcarddomain']
 					|| $openbasedir != $result['openbasedir']
 					|| $phpsettingid != $result['phpsettingid']
+					|| $vhostsettingid != $result['vhostsettingid']
+					|| $vhost_usedefaultlocation != $result['vhost_usedefaultlocation']
 					|| $mod_fcgid_starter != $result['mod_fcgid_starter']
 					|| $mod_fcgid_maxrequests != $result['mod_fcgid_maxrequests']
 					|| $specialsettings != $result['specialsettings']
@@ -1669,6 +1700,8 @@ if ($page == 'domains'
 				$update_data['openbasedir'] = $openbasedir;
 				$update_data['speciallogfile'] = $speciallogfile;
 				$update_data['phpsettingid'] = $phpsettingid;
+				$update_data['vhostsettingid'] = $vhostsettingid;
+				$update_data['vhost_usedefaultlocation'] = $vhost_usedefaultlocation;
 				$update_data['mod_fcgid_starter'] = $mod_fcgid_starter;
 				$update_data['mod_fcgid_maxrequests'] = $mod_fcgid_maxrequests;
 				$update_data['specialsettings'] = $specialsettings;
@@ -1697,6 +1730,8 @@ if ($page == 'domains'
 					`openbasedir` = :openbasedir,
 					`speciallogfile` = :speciallogfile,
 					`phpsettingid` = :phpsettingid,
+					`vhostsettingid` = :vhostsettingid,
+					`vhost_usedefaultlocation` = :vhost_usedefaultlocation,
 					`mod_fcgid_starter` = :mod_fcgid_starter,
 					`mod_fcgid_maxrequests` = :mod_fcgid_maxrequests,
 					`specialsettings` = :specialsettings,
@@ -1712,6 +1747,8 @@ if ($page == 'domains'
 				$_update_data['adminid'] = $adminid;
 				$_update_data['openbasedir'] = $openbasedir;
 				$_update_data['phpsettingid'] = $phpsettingid;
+				$_update_data['vhost_usedefaultlocation'] = $vhost_usedefaultlocation;
+				$_update_data['vhostsettingid'] = $vhostsettingid;
 				$_update_data['mod_fcgid_starter'] = $mod_fcgid_starter;
 				$_update_data['mod_fcgid_maxrequests'] = $mod_fcgid_maxrequests;
 				$_update_data['parentdomainid'] = $id;
@@ -1729,6 +1766,8 @@ if ($page == 'domains'
 					`customerid` = :customerid,
 					`adminid` = :adminid,
 					`openbasedir` = :openbasedir,
+					`vhostsettingid` = :vhostsettingid,
+					`vhost_usedefaultlocation` = :vhost_usedefaultlocation,
 					`phpsettingid` = :phpsettingid,
 					`mod_fcgid_starter` = :mod_fcgid_starter,
 					`mod_fcgid_maxrequests` = :mod_fcgid_maxrequests
@@ -1941,7 +1980,7 @@ if ($page == 'domains'
 				// Fudge the result for ssl_redirect to hide the Let's Encrypt steps
 				$result['temporary_ssl_redirect'] = $result['ssl_redirect'];
 				$result['ssl_redirect'] = ($result['ssl_redirect'] == 0 ? 0 : 1);
-				
+
 				$serveraliasoptions .= makeoption($lng['domains']['serveraliasoption_wildcard'], '0', $_value, true, true);
 				$serveraliasoptions .= makeoption($lng['domains']['serveraliasoption_www'], '1', $_value, true, true);
 				$serveraliasoptions .= makeoption($lng['domains']['serveraliasoption_none'], '2', $_value, true, true);
@@ -1958,6 +1997,16 @@ if ($page == 'domains'
 
 				while ($phpconfigs_row = $phpconfigs_result_stmt->fetch(PDO::FETCH_ASSOC)) {
 					$phpconfigs.= makeoption($phpconfigs_row['description'], $phpconfigs_row['id'], $result['phpsettingid'], true, true);
+				}
+
+				// vhost configs
+				$vhostconfigs = '';
+				$vhostconfigs_result_stmt = Database::prepare("SELECT * FROM `" . TABLE_PANEL_VHOSTCONFIGS . "` WHERE `webserver` = :webserver ORDER BY description ASC");
+				Database::pexecute($vhostconfigs_result_stmt, array('webserver' => Settings::Get('system.webserver')));
+
+				$vhostconfigs .= makeoption($lng['admin']['vhostsettings']['novhostsettings'], 0);
+				while ($vhostconfig_row = $vhostconfigs_result_stmt->fetch(PDO::FETCH_ASSOC)) {
+					$vhostconfigs .= makeoption($vhostconfig_row['description'], $vhostconfig_row['id'], $result['vhostsettingid'], true, true);
 				}
 
 				$result = htmlentities_array($result);
